@@ -2,17 +2,19 @@
 .gradle
 .kotlin
 /local.properties
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
+local.properties
 .DS_Store
 /build
+app/build/
 /captures
 .externalNativeBuild
 .cxx
-local.properties
 .env
 debug.keystore
+
+# Android Studio / IntelliJ IDEA
+.idea/
+
+# Keystore base64 is kept so keystore can be restored, but raw debug.keystore is local
+# Ensure Gradle wrapper jar is tracked in git so Android Studio can build immediately after clone
+!gradle/wrapper/gradle-wrapper.jar
