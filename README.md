@@ -1,48 +1,47 @@
-# Paladar Lachy • POS Restaurante (Cuba)
+# Control Lachy • Control de Inventarios & Almacén
 
-Aplicación Android desarrollada en **Kotlin** y **Jetpack Compose** para la gestión integral de paladares y restaurantes en Cuba (Cienfuegos). Diseñada con arquitectura **100% Offline-First**, cálculo multimoneda dinámico (CUP, USD, MLC, EUR), control de inventario/stock crítico y reporte de cierre de caja para WhatsApp.
-
----
-
-## 🛠️ Requisitos para abrir en Android Studio
-
-1. **Android Studio**: Versión recomendada Hedgehog, Iguana, Jellyfish, Koala, Ladybug o superior.
-2. **JDK**: JDK 17 o JDK 21 (incluido por defecto en Android Studio bajo *Settings > Build, Execution, Deployment > Build Tools > Gradle > Gradle JDK*).
-3. **Android SDK**:
-   - `compileSdk`: 36
-   - `minSdk`: 24 (Android 7.0+)
-   - `targetSdk`: 36
+Aplicación Android desarrollada en **Kotlin** y **Jetpack Compose** diseñada para el control total de inventarios, compras y almacén. Resuelve la coordinación en tiempo real entre el **Comprador** (quien gestiona compras, precios por libra/unidad e ingresos) y el **Dueño** (quien supervisa existencias, entradas, salidas y valor del almacén desde cualquier lugar).
 
 ---
 
-## 🚀 Flujo con GitHub & GitHub Desktop
+## 🎯 Funcionalidades Principales
 
-1. **Clonar con GitHub Desktop**:
-   - En GitHub Desktop: `File > Clone Repository...`
-   - Selecciona el repositorio y clónalo en tu carpeta local deseada.
-2. **Abrir en Android Studio**:
-   - Abre Android Studio y selecciona **Open** (o `File > Open...`).
-   - Navega hasta la carpeta del repositorio clonado y selecciónala.
-   - Android Studio detectará automáticamente el archivo `settings.gradle.kts` y el `gradlew` (Gradle Wrapper).
-   - Espera a que termine la sincronización de Gradle (`Gradle Sync`).
-3. **Ejecutar la app**:
-   - Conecta un dispositivo Android por USB o crea un emulador en el *Device Manager*.
-   - Presiona el botón verde de **Run** (`Shift + F10`).
-   - O compila el APK por terminal:
-     ```bash
-     ./gradlew assembleDebug
-     ```
-     (En Windows: `gradlew.bat assembleDebug`)
+1. **📊 Panel del Dueño (Supervisión Total):**
+   - **Valor monetario total del inventario** en almacén (en CUP y equivalente en USD).
+   - Conteo de productos disponibles, compras en camino y alertas de stock bajo/agotado.
+   - Resumen de lo que entra y lo que sale de almacén.
+   - Botón de 1 toque para compartir el reporte de inventario completo por **WhatsApp** o mensaje.
+
+2. **📦 Inventario & Almacén:**
+   - Catálogo de productos con buscador instantáneo y filtros por categorías (Insumos, Empaques, Equipos, Bebidas, etc.).
+   - Existencias en tiempo real, unidad de medida (Libras, Moldes, Unidades, Cajas, etc.) y precio unitario de referencia.
+   - Acciones directas por producto:
+     - **+ Entrada Rápida**: Sumar existencias indicando precio pagado y proveedor.
+     - **- Salida Rápida**: Descontar existencias por despacho, consumo interno o merma.
+     - **Conteo Físico**: Ajustar el stock real tras inventario físico.
+   - Alta y edición de nuevos productos.
+
+3. **🛒 Comprador & Entradas:**
+   - Lista prioritaria de productos con **Stock Bajo / Por Comprar**.
+   - Registro de compras en la calle o agro:
+     - Producto, cantidad, precio unitario pagado (ej. precio por libra de queso).
+     - Cálculo automático del costo total.
+     - Proveedor o lugar de compra.
+     - Opción de registrar como "En Camino" o "Ingresado directamente al almacén".
+   - Confirmación de llegada de compras en tránsito al almacén con un solo toque.
+
+4. **📋 Salidas & Kárdex (Historial):**
+   - Registro de salidas de almacén indicando motivo (despacho, consumo, merma) y persona responsable.
+   - Historial cronológico con filtros (Todas, Entradas, Salidas, Ajustes).
 
 ---
 
-## 📦 Estructura del Proyecto
+## 🚀 Flujo con GitHub & Android Studio
 
-- `app/src/main/java/com/example/`:
-  - `data/model/`: Entidades Room (`MenuItem`, `TableEntity`, `OrderEntity`, `OrderItem`, `ExchangeRate`, `Expense`).
-  - `data/dao/`: `RestaurantDao` con queries reactivas en `Flow`.
-  - `data/database/`: `RestaurantDatabase` con precarga inicial de platos criollos y mesas de Cienfuegos.
-  - `data/repository/`: Lógica de negocio y persistencia.
-  - `ui/screens/`: Pantallas de Mesas, Comandas (POS), Inventario, Arqueo de Caja y Tasas de Cambio.
-  - `ui/components/`: Diálogo de cobro multimoneda y ticket compartible.
-  - `ui/utils/`: Formateador de divisas y generador de reportes de texto para WhatsApp/SMS.
+1. Clonar el repositorio con **GitHub Desktop**.
+2. Abrir la carpeta clonada en **Android Studio** (`File > Open...`).
+3. El proyecto incluye `gradlew`, `gradlew.bat` y `gradle-wrapper.jar` pre-configurados.
+4. Compilar APK con:
+   ```bash
+   ./gradlew assembleDebug
+   ```

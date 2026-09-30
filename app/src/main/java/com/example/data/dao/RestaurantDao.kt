@@ -5,131 +5,84 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Transaction
 import androidx.room.Update
 import com.example.data.model.ExchangeRate
-import com.example.data.model.Expense
-import com.example.data.model.ItemCookingStatus
-import com.example.data.model.MenuItem
-import com.example.data.model.OrderEntity
-import com.example.data.model.OrderItem
-import com.example.data.model.OrderWithItems
-import com.example.data.model.TableEntity
+import com.example.data.model.PurchaseRecord
+import com.example.data.model.PurchaseStatus
+import com.example.data.model.StockItem
+import com.example.data.model.StockMovement
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface RestaurantDao {
 
-    // --- MENU ITEMS ---
-    @Query("SELECT * FROM menu_items ORDER BY category ASC, name ASC")
-    fun getAllMenuItems(): Flow<List<MenuItem>>
+    // --- STOCK / INVENTARIO ALMACÉN ---
+    @Query("SELECT * FROM stock_items ORDER BY category ASC, name ASC")
+    fun getAllStockItems(): Flow<List<StockItem>>
 
-    @Query("SELECT * FROM menu_items WHERE isAvailable = 1 ORDER BY category ASC, name ASC")
-    fun getAvailableMenuItems(): Flow<List<MenuItem>>
+    @Query("SELECT * FROM stock_items WHERE currentStock <= minStockAlert ORDER BY currentStock ASC")
+    fun getCriticalStockItems(): Flow<List<StockItem>>
 
-    @Query("SELECT * FROM menu_items WHERE id = :id")
-    suspend fun getMenuItemById(id: Long): MenuItem?
+    @Query("SELECT * FROM stock_items WHERE id = :id LIMIT 1")
+    suspend fun getStockItemById(id: Long): StockItem?
+
+    @Query("SELECT * FROM stock_items WHERE name = :name LIMIT 1")
+    suspend fun getStockItemByName(name: String): StockItem?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertMenuItem(item: MenuItem): Long
+    suspend fun insertStockItem(item: StockItem): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertMenuItems(items: List<MenuItem>)
+    suspend fun insertStockItems(items: List<StockItem>)
 
     @Update
-    suspend fun updateMenuItem(item: MenuItem)
+    suspend fun updateStockItem(item: StockItem)
 
     @Delete
-    suspend fun deleteMenuItem(item: MenuItem)
+    suspend fun deleteStockItem(item: StockItem)
 
-    @Query("UPDATE menu_items SET stock = :newStock WHERE id = :id")
-    suspend fun updateStock(id: Long, newStock: Int)
+    @Query("UPDATE stock_items SET currentStock = :newStock, lastUnitPriceCup = CASE WHEN :lastPrice > 0 THEN :lastPrice ELSE lastUnitPriceCup END, updatedAt = :time WHERE id = :id")
+    suspend fun updateStockQuantity(id: Long, newStock: Double, lastPrice: Double, time: Long)
 
-    // --- TABLES ---
-    @Query("SELECT * FROM tables ORDER BY id ASC")
-    fun getAllTables(): Flow<List<TableEntity>>
+    // --- COMPRAS & LOGÍSTICA ---
+    @Query("SELECT * FROM purchases ORDER BY requestedAt DESC, id DESC")
+    fun getAllPurchases(): Flow<List<PurchaseRecord>>
 
-    @Query("SELECT * FROM tables WHERE id = :id")
-    suspend fun getTableById(id: Long): TableEntity?
+    @Query("SELECT * FROM purchases WHERE status = :status ORDER BY requestedAt DESC")
+    fun getPurchasesByStatus(status: PurchaseStatus): Flow<List<PurchaseRecord>>
+
+    @Query("SELECT * FROM purchases WHERE id = :id LIMIT 1")
+    suspend fun getPurchaseById(id: Long): PurchaseRecord?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertTable(table: TableEntity): Long
+    suspend fun insertPurchase(purchase: PurchaseRecord): Long
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertTables(tables: List<TableEntity>)
+    suspend fun insertPurchases(purchases: List<PurchaseRecord>)
 
     @Update
-    suspend fun updateTable(table: TableEntity)
-
-    // --- ORDERS ---
-    @Query("SELECT * FROM orders WHERE id = :id")
-    suspend fun getOrderById(id: Long): OrderEntity?
-
-    @Query("SELECT * FROM orders WHERE tableId = :tableId AND isClosed = 0 LIMIT 1")
-    suspend fun getActiveOrderForTable(tableId: Long): OrderEntity?
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertOrder(order: OrderEntity): Long
-
-    @Update
-    suspend fun updateOrder(order: OrderEntity)
-
-    @Transaction
-    @Query("SELECT * FROM orders WHERE id = :orderId")
-    fun getOrderWithItems(orderId: Long): Flow<OrderWithItems?>
-
-    @Transaction
-    @Query("SELECT * FROM orders WHERE isClosed = 1 ORDER BY closedAt DESC")
-    fun getClosedOrders(): Flow<List<OrderWithItems>>
-
-    @Query("SELECT * FROM orders WHERE isClosed = 1 AND closedAt >= :startOfDay AND closedAt <= :endOfDay ORDER BY closedAt DESC")
-    fun getClosedOrdersForDate(startOfDay: Long, endOfDay: Long): Flow<List<OrderEntity>>
+    suspend fun updatePurchase(purchase: PurchaseRecord)
 
     @Delete
-    suspend fun deleteOrder(order: OrderEntity)
+    suspend fun deletePurchase(purchase: PurchaseRecord)
 
-    // --- ORDER ITEMS ---
-    @Query("SELECT * FROM order_items WHERE orderId = :orderId ORDER BY addedAt ASC")
-    fun getItemsForOrder(orderId: Long): Flow<List<OrderItem>>
+    // --- MOVIMIENTOS KÁRDEX ---
+    @Query("SELECT * FROM stock_movements ORDER BY timestamp DESC")
+    fun getAllMovements(): Flow<List<StockMovement>>
+
+    @Query("SELECT * FROM stock_movements WHERE stockItemId = :itemId ORDER BY timestamp DESC")
+    fun getMovementsForItem(itemId: Long): Flow<List<StockMovement>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertOrderItem(item: OrderItem): Long
+    suspend fun insertMovement(movement: StockMovement): Long
 
-    @Update
-    suspend fun updateOrderItem(item: OrderItem)
-
-    @Delete
-    suspend fun deleteOrderItem(item: OrderItem)
-
-    @Query("DELETE FROM order_items WHERE id = :id")
-    suspend fun deleteOrderItemById(id: Long)
-
-    @Query("UPDATE order_items SET status = :status WHERE id = :itemId")
-    suspend fun updateItemCookingStatus(itemId: Long, status: ItemCookingStatus)
-
-    // --- EXCHANGE RATES ---
+    // --- TASAS DE CAMBIO ---
     @Query("SELECT * FROM exchange_rates")
     fun getAllExchangeRates(): Flow<List<ExchangeRate>>
-
-    @Query("SELECT * FROM exchange_rates WHERE currencyCode = :code LIMIT 1")
-    suspend fun getExchangeRateByCode(code: String): ExchangeRate?
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertOrUpdateExchangeRate(rate: ExchangeRate)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertExchangeRates(rates: List<ExchangeRate>)
 
-    // --- EXPENSES ---
-    @Query("SELECT * FROM expenses ORDER BY timestamp DESC")
-    fun getAllExpenses(): Flow<List<Expense>>
-
-    @Query("SELECT * FROM expenses WHERE timestamp >= :startOfDay AND timestamp <= :endOfDay ORDER BY timestamp DESC")
-    fun getExpensesForDate(startOfDay: Long, endOfDay: Long): Flow<List<Expense>>
-
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertExpense(expense: Expense): Long
-
-    @Delete
-    suspend fun deleteExpense(expense: Expense)
+    suspend fun insertOrUpdateExchangeRate(rate: ExchangeRate)
 }

@@ -1,6 +1,6 @@
 {
-  "name": "Paladar Lachy",
-  "description": "Sistema de gestión para restaurantes y paladares en Cuba (Cienfuegos). 100% offline, control de mesas y comandas, cálculo multimoneda (CUP/USD/MLC/EUR), control de inventario crítico y arqueo de caja con reporte para WhatsApp.",
+  "name": "Control Lachy",
+  "description": "Sistema de control de inventario y almacén. Monitoreo de stock en tiempo real para el dueño y gestión de compras, entradas y salidas para el comprador.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

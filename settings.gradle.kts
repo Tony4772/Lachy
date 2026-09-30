@@ -22,6 +22,6 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "Paladar Lachy"
+rootProject.name = "Control Lachy"
 
 include(":app")

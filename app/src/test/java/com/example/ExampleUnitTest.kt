@@ -1,9 +1,8 @@
 package com.example
 
-import com.example.data.model.ExchangeRate
-import com.example.data.model.OrderEntity
-import com.example.data.model.OrderItem
-import com.example.data.model.OrderWithItems
+import com.example.data.model.PurchaseRecord
+import com.example.data.model.PurchaseStatus
+import com.example.data.model.StockItem
 import com.example.ui.utils.CurrencyUtils
 import com.example.ui.utils.ShareReportHelper
 import org.junit.Assert.assertEquals
@@ -21,55 +20,73 @@ class ExampleUnitTest {
     }
 
     @Test
-    fun testCurrencyConversion_ForeignToCup() {
-        val usdAmount = 25.0
-        val rateUsd = 330.0
-        val cup = CurrencyUtils.foreignToCup(usdAmount, rateUsd)
-        assertEquals(8250.0, cup, 0.001)
+    fun testStockItem_isCritical() {
+        val cheese = StockItem(
+            id = 1L,
+            name = "Queso Barra",
+            category = "Insumos",
+            unit = "Libras",
+            currentStock = 12.0,
+            minStockAlert = 20.0
+        )
+        assertTrue(cheese.isCritical)
     }
 
     @Test
-    fun testTicketGeneration() {
-        val order = OrderEntity(
-            id = 1L,
-            tableId = 1L,
-            tableName = "Mesa 2",
-            waiterName = "José",
-            subtotalCup = 2000.0,
-            servicePercent = 10.0,
-            totalCup = 2200.0
+    fun testStockItem_totalValue() {
+        val flour = StockItem(
+            id = 2L,
+            name = "Harina de Trigo",
+            category = "Insumos",
+            unit = "Libras",
+            currentStock = 50.0,
+            lastUnitPriceCup = 200.0
         )
-        val items = listOf(
-            OrderItem(
+        assertEquals(10000.0, flour.totalValueCup, 0.001)
+    }
+
+    @Test
+    fun testLachyReportGeneration() {
+        val purchasesEnCamino = listOf(
+            PurchaseRecord(
                 id = 1L,
-                orderId = 1L,
-                menuItemId = 1L,
-                name = "Ropa Vieja Criolla",
-                category = "Platos Fuertes",
-                priceCup = 1450.0,
-                quantity = 1
-            ),
-            OrderItem(
-                id = 2L,
-                orderId = 1L,
-                menuItemId = 2L,
-                name = "Cerveza Cristal",
-                category = "Bebidas",
-                priceCup = 450.0,
-                quantity = 1
+                itemName = "Queso Barra",
+                quantity = 25.0,
+                unit = "Libras",
+                unitPriceCup = 670.0,
+                totalCostCup = 16750.0,
+                buyerName = "Carlos",
+                purchasePlace = "Mercado Agro Cienfuegos",
+                status = PurchaseStatus.COMPRADO_EN_CAMINO
             )
         )
-        val orderWithItems = OrderWithItems(order, items)
-        val rates = listOf(
-            ExchangeRate("USD", 330.0, "$"),
-            ExchangeRate("MLC", 270.0, "MLC"),
-            ExchangeRate("EUR", 345.0, "€")
+        val criticalItems = listOf(
+            StockItem(
+                id = 2L,
+                name = "Cajas Termopack",
+                category = "Empaques",
+                unit = "Termopacks",
+                currentStock = 18.0,
+                minStockAlert = 60.0
+            )
+        )
+        val allItems = listOf(
+            StockItem(
+                id = 3L,
+                name = "Moldes de Pizza 30cm",
+                category = "Equipos y Utensilios",
+                unit = "Moldes",
+                currentStock = 24.0,
+                minStockAlert = 20.0,
+                lastUnitPriceCup = 1200.0
+            )
         )
 
-        val ticket = ShareReportHelper.generateOrderTicketText(orderWithItems, rates)
-        assertTrue(ticket.contains("PALADAR LACHY"))
-        assertTrue(ticket.contains("Ropa Vieja Criolla"))
-        assertTrue(ticket.contains("Cerveza Cristal"))
-        assertTrue(ticket.contains("Servicio (10%)"))
+        val report = ShareReportHelper.generateLachyReport(purchasesEnCamino, criticalItems, allItems, 330.0)
+        assertTrue(report.contains("REPORTE DE INVENTARIO & ALMACÉN"))
+        assertTrue(report.contains("Queso Barra"))
+        assertTrue(report.contains("670 CUP"))
+        assertTrue(report.contains("Moldes de Pizza 30cm"))
+        assertTrue(report.contains("Cajas Termopack"))
     }
 }
